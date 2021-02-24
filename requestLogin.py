@@ -31,7 +31,8 @@ class GithubLogin(object):
     # 获取 authenticity_token
     def get_authenticity_token(self):
         login_url = "https://github.com/login"
-        r = self.s.get(login_url, headers=self.headers)
+        r = self.session.get(login_url, headers=self.headers)
+        # print(r.text)
         authenticity_token = re.findall('<input type="hidden" name="authenticity_token" value="(.+?)" />', r.text)
         print("authenticity_token：{}".format(authenticity_token))
         return authenticity_token[0]
@@ -48,28 +49,32 @@ class GithubLogin(object):
 
         # 登录 post 提交表单
         res_index = self.session.post(url=self.login_url, headers=self.headers, data=post_data)
+        print(res_index)
         if res_index.status_code == requests.codes.ok:
             self.repository(res_index.text)
 
         # 请求个人中心页面
         res_profile = self.session.get(url=self.profile_url, headers=self.headers)
         if res_profile.status_code == requests.codes.ok:
-            self.getProfile(res_profile.text)
+            # self.getProfile(res_profile.text)
+            self.repository(res_profile.text)
 
     def repository(self, text):
         res_obj = etree.HTML(text)
-        repo_list = res_obj.xpath('//div[@class="Box-body"]/ul/li//a/@href')
+        print(res_obj)
+        # repo_list = res_obj.xpath('//div[@class="Box-body"]/ul/li//a/@href')
+        repo_list = res_obj.xpath('//div[@class="js-collaborated-repos"]')  # TODO 从js-collaborated-repos中获取库的信息
+        print(repo_list)
         for repo in repo_list:
             print(repo)
 
-    def getProfile(self, text):
-        res_obj = etree.HTML(text)
-        username = res_obj.xpath(
-            '//div[@class="column two-thirds"]/dl[contains(@class,"form-group")]/dd/input[@id="user_profile_name"]/@value')[
-            0]
-        print("用户名：", username)
-        email = res_obj.xpath('//div[@class="column two-thirds"]/dl[2]/dd/select/option[2]/text()')[0]
-        print("邮箱：", email)
+    # def getProfile(self, text):
+    #     res_obj = etree.HTML(text)
+    #     username = res_obj.xpath(
+    #         '//div[@class="column two-thirds"]/dl[contains(@class,"form-group")]/dd/input[@id="user_profile_name"]/@value')[0]
+    #     print("用户名：", username)
+    #     email = res_obj.xpath('//div[@class="column two-thirds"]/dl[2]/dd/select/option[2]/text()')[0]
+    #     print("邮箱：", email)
 
 
 if __name__ == '__main__':
