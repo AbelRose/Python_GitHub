@@ -1,5 +1,6 @@
 import requests
 from lxml import etree
+from lxml import html
 import re
 
 class GithubLogin(object):
@@ -57,16 +58,20 @@ class GithubLogin(object):
         res_profile = self.session.get(url=self.profile_url, headers=self.headers)
         if res_profile.status_code == requests.codes.ok:
             # self.getProfile(res_profile.text)
+            # print(res_profile.text)  # TODO 拿到的是什么?? https://github.com/settings/profile 页面内容
             self.repository(res_profile.text)
 
     def repository(self, text):
+        # print(text)
         res_obj = etree.HTML(text)
-        print(res_obj)
-        # repo_list = res_obj.xpath('//div[@class="Box-body"]/ul/li//a/@href')
-        repo_list = res_obj.xpath('//div[@class="js-collaborated-repos"]')  # TODO 从js-collaborated-repos中获取库的信息
+        aaa = html.tostring(res_obj)
+        print(aaa)
+        # print(res_obj) # <Element html at 0x2805483f848>
+        # repo_list = res_obj.xpath('//div[@class="js-collaborated-repos"]')  # TODO 从js-collaborated-repos中获取库的信息
+        repo_list = res_obj.xpath('//*[@id="js-pjax-container"]/div/div[2]/div[2]/div[3]/div[4]/div[1]/span/text()')  # TODO 从js-collaborated-repos中获取库的信息
         print(repo_list)
-        for repo in repo_list:
-            print(repo)
+        # for repo in repo_list:
+        #     print(repo)
 
     # def getProfile(self, text):
     #     res_obj = etree.HTML(text)
